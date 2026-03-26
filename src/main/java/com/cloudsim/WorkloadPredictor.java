@@ -14,41 +14,76 @@ import java.util.Map;
  * Reads LSTM-predicted workload CSV and provides predicted throughput
  * based on timestamp.
  */
+
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVRecord;
+
+import java.io.FileReader;
+import java.io.Reader;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
+import java.util.HashMap;
+import java.util.Map;
+
 public class WorkloadPredictor {
 
     private final Map<LocalDateTime, Double> throughputMap = new HashMap<>();
-    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    // Accept "yyyy-MM-dd HH:mm:ss" and "yyyy-MM-dd HH:mm"
+    private final DateTimeFormatter predFormatter = new DateTimeFormatterBuilder()
+            .appendPattern("yyyy-MM-dd HH:mm")
+            .optionalStart()
+            .appendPattern(":ss")
+            .optionalEnd()
+            .parseDefaulting(ChronoField.SECOND_OF_MINUTE, 0)
+            .toFormatter();
+
+    private LocalDateTime baseTime = null;
 
     public WorkloadPredictor(String csvFilePath) {
         loadPredictions(csvFilePath);
     }
 
-    /** Loads predicted throughput (tasks/sec) from the CSV file */
+    public LocalDateTime getBaseTime() {
+        return baseTime;
+    }
+
     private void loadPredictions(String csvFilePath) {
         try (Reader in = new FileReader(csvFilePath)) {
             Iterable<CSVRecord> records = CSVFormat.DEFAULT
                     .withFirstRecordAsHeader()
                     .parse(in);
 
+            int count = 0;
             for (CSVRecord record : records) {
-                LocalDateTime timestamp = LocalDateTime.parse(record.get("Task_Start_Time"), formatter);
-                double predictedThroughput = Double.parseDouble(record.get("Predicted_Throughput (tasks/sec)"));
-                throughputMap.put(timestamp, predictedThroughput);
+                LocalDateTime ts = LocalDateTime.parse(record.get("Task_Start_Time"), predFormatter);
+                double pred = Double.parseDouble(record.get("Predicted_Throughput (tasks/sec)"));
+                throughputMap.put(ts, pred);
+                if (baseTime == null) baseTime = ts;
+                count++;
             }
-
-            System.out.println("✅ Loaded " + throughputMap.size() + " LSTM predictions from CSV.");
+            System.out.println("✅ Loaded " + count + " throughput predictions.");
+            System.out.println("🕒 Predictor baseTime: " + baseTime);
         } catch (Exception e) {
-            System.err.println("⚠ Error loading LSTM predictions: " + e.getMessage());
+            System.err.println("⚠ Error loading predictions: " + e.getMessage());
         }
     }
-    public void updateObservedThroughput(double observedThroughput) {
-        // You can log, smooth, or store this for online learning
-        System.out.printf("📥 Received observed throughput feedback: %.3f%n", observedThroughput);
-        // Optionally update internal state here
+
+    /** Query by dataset timestamp */
+    public double getPredictedThroughput(LocalDateTime timestamp) {
+        return throughputMap.getOrDefault(timestamp, 5.0);
     }
 
-    /** Returns the nearest predicted throughput for the given timestamp */
-    public double getPredictedThroughput(LocalDateTime timestamp) {
-        return throughputMap.getOrDefault(timestamp, 5.0); // Default avg throughput
+    /** Query by simulation clock (seconds since baseTime) */
+    public double getPredictedThroughput(double simTimeSeconds) {
+        if (baseTime == null) return 5.0;
+        LocalDateTime ts = baseTime.plusSeconds((long)Math.floor(simTimeSeconds));
+        return getPredictedThroughput(ts);
+    }
+
+    public void updateObservedThroughput(double observedThroughput) {
+        // Optional: log/online learning hook
     }
 }

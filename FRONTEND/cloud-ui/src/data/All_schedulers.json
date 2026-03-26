@@ -1,0 +1,52 @@
+{
+  "schedulers": [
+    {
+      "name": "PRIORITY",
+      "cost": 8.34,
+      "makespan": 4500,
+      "vmLoad": [93, 86, 217, 226, 212]
+    },
+    {
+      "name": "AI_COST_PRIORITY",
+      "cost": 10.0,
+      "makespan": 5000,
+      "vmLoad": [363, 374, 0, 0, 263]
+    },
+    {
+      "name": "ROUND_ROBIN",
+      "cost": 10.0,
+      "makespan": 5000,
+      "vmLoad": [200, 200, 200, 200, 200]
+    },
+    {
+      "name": "FIFO",
+      "cost": 10.0,
+      "makespan": 5000,
+      "vmLoad": [124, 77, 237, 210, 352]
+    },
+    {
+      "name": "SJF",
+      "cost": 10.0,
+      "makespan": 5000,
+      "vmLoad": [66, 107, 165, 193, 469]
+    },
+    {
+      "name": "MINMIN",
+      "cost": 10.0,
+      "makespan": 5000,
+      "vmLoad": [21, 20, 118, 113, 728]
+    },
+    {
+      "name": "COST_GREEDY",
+      "cost": 5.0,
+      "makespan": 5000,
+      "vmLoad": [1000, 0, 0, 0, 0]
+    },
+    {
+      "name": "PRIORITY_SJF",
+      "cost": 9.0,
+      "makespan": 4995,
+      "vmLoad": [180, 210, 200, 205, 205]
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "scheduler": "SJF",
+  "vmBindings": {
+    "0": 66,
+    "1": 107,
+    "2": 165,
+    "3": 193,
+    "4": 469
+  },
+  "totalCost": 10.0,
+  "makespan": 5000,
+  "avgRamUtil": 0.5
+}

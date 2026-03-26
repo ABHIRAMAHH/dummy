@@ -1,0 +1,13 @@
+{
+  "scheduler": "FIFO",
+  "vmBindings": {
+    "0": 124,
+    "1": 77,
+    "2": 237,
+    "3": 210,
+    "4": 352
+  },
+  "totalCost": 10.0,
+  "makespan": 5000,
+  "avgRamUtil": 0.5
+}

@@ -1,7 +1,6 @@
-{
-  "vm_types": [
-    {"type": "small", "mips": 1000, "ram": 1024, "bw": 1000, "pes": 1, "costPerSec": 0.5},
-    {"type": "medium", "mips": 2000, "ram": 2048, "bw": 2000, "pes": 2, "costPerSec": 1.0},
-    {"type": "large", "mips": 3000, "ram": 4096, "bw": 4000, "pes": 4, "costPerSec": 1.8}
-  ]
-}
+
+[
+  {"name":"small","mips":1000,"ram":1024,"bw":1000,"pes":1,"costPerSec":1.0},
+  {"name":"medium","mips":2000,"ram":2048,"bw":2000,"pes":2,"costPerSec":50.0},
+  {"name":"large","mips":3000,"ram":4096,"bw":4000,"pes":4,"costPerSec":120.0}
+]

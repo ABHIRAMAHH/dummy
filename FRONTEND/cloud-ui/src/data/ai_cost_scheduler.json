@@ -1,0 +1,13 @@
+{
+  "scheduler": "AI_COST_PRIORITY",
+  "vmBindings": {
+    "0": 363,
+    "1": 374,
+    "2": 0,
+    "3": 0,
+    "4": 263
+  },
+  "totalCost": 10.0,
+  "makespan": 5000,
+  "avgRamUtil": 0.5
+}

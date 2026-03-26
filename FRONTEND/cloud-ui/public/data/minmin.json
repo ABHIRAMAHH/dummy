@@ -1,0 +1,13 @@
+{
+  "scheduler": "MINMIN",
+  "vmBindings": {
+    "0": 21,
+    "1": 20,
+    "2": 118,
+    "3": 113,
+    "4": 728
+  },
+  "totalCost": 10.0,
+  "makespan": 5000,
+  "avgRamUtil": 0.5
+}

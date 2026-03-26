@@ -1,0 +1,13 @@
+{
+  "scheduler": "ROUND_ROBIN",
+  "vmBindings": {
+    "0": 200,
+    "1": 200,
+    "2": 200,
+    "3": 200,
+    "4": 200
+  },
+  "totalCost": 10.0,
+  "makespan": 5000,
+  "avgRamUtil": 0.5
+}

@@ -1,0 +1,13 @@
+{
+  "scheduler": "COST_GREEDY",
+  "vmBindings": {
+    "0": 1000,
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0
+  },
+  "totalCost": 5.0,
+  "makespan": 5000,
+  "avgRamUtil": 0.2
+}

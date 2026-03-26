@@ -1,0 +1,13 @@
+{
+  "scheduler": "PRIORITY_SJF",
+  "vmBindings": {
+    "0": 180,
+    "1": 210,
+    "2": 200,
+    "3": 205,
+    "4": 205
+  },
+  "totalCost": 9.0,
+  "makespan": 4995,
+  "avgRamUtil": 0.6
+}

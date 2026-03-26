@@ -1,0 +1,13 @@
+{
+  "scheduler": "PRIORITY",
+  "vmBindings": {
+    "0": 93,
+    "1": 86,
+    "2": 217,
+    "3": 226,
+    "4": 212
+  },
+  "totalCost": 8.34,
+  "makespan": 4998.861,
+  "avgRamUtil": 0.5
+}
