@@ -1,20 +1,20 @@
 package com.cloudsim;
 
 public enum SchedulerType {
-
-
-
-
-
-
-
-
-    PRIORITY_SJF,
-    SJF,
+    AI_COST_PRIORITY,
+    PRIORITY,
     COST_GREEDY,
     MINMIN,
-    FIFO,
+    SJF,
+    PRIORITY_SJF,
     ROUND_ROBIN,
-    AI_COST_PRIORITY,
-    PRIORITY
+    FIFO
+
+
+
+
+
+
+
+
 }

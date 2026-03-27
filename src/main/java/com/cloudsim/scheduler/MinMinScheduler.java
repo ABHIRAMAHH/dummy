@@ -1,90 +1,78 @@
 package com.cloudsim.scheduler;
 
+import com.cloudsim.output.ResultsExporter;
 import com.cloudsim.workload.WorkloadLoader;
 import org.cloudbus.cloudsim.brokers.DatacenterBrokerSimple;
 import org.cloudbus.cloudsim.cloudlets.CloudletSimple;
 import org.cloudbus.cloudsim.vms.Vm;
 
 import java.util.*;
-
 import static com.cloudsim.scheduler.SchedulerUtil.*;
 
 public class MinMinScheduler {
 
-    /**
-     * Classic Min-Min heuristic:
-     * Repeatedly pick the task that has the minimum earliest completion time (ECT) across all tasks,
-     * assign it to the VM that gives that ECT, update that VM ready time, repeat.
-     *
-     * NOTE: This is offline scheduling (looks at all tasks together).
-     * We still preserve submissionDelay(arrival) for your workload model.
-     */
     public static List<CloudletSimple> schedule(
             List<WorkloadLoader.WorkloadTask> tasks,
             List<Vm> vms,
             DatacenterBrokerSimple broker
     ) {
-        List<WorkloadLoader.WorkloadTask> remaining = new ArrayList<>(tasks);
+        int V = vms.size();
 
-        // VM "ready time" in seconds
-        Map<Vm, Double> readyTime = new HashMap<>();
+        List<WorkloadLoader.WorkloadTask> remaining = new ArrayList<>(tasks);
+        Map<Vm, Double> readyTime  = new HashMap<>();
         for (Vm vm : vms) readyTime.put(vm, 0.0);
 
         List<CloudletSimple> cloudlets = new ArrayList<>(tasks.size());
-        Map<Long, Integer> bindCounts = new TreeMap<>();
+        Map<Long, Integer>   bindCounts = new TreeMap<>();
+        double[] backlog = new double[V];
 
         while (!remaining.isEmpty()) {
             WorkloadLoader.WorkloadTask bestTask = null;
-            Vm bestVm = null;
+            Vm     bestVm  = null;
             double bestECT = Double.POSITIVE_INFINITY;
+            int    bestIdx = 0;
 
-            // Find task with minimum ECT
             for (WorkloadLoader.WorkloadTask t : remaining) {
-                double arrival = t.getArrivalTimeSeconds();
+                double arrival  = t.getArrivalTimeSeconds();
                 double lengthMi = lengthMiLike(t);
 
-                Vm localBestVm = null;
-                double localBestECT = Double.POSITIVE_INFINITY;
-
-                for (Vm vm : vms) {
-                    double cap = capacityMiPerSec(vm);
+                for (int j = 0; j < V; j++) {
+                    Vm     vm   = vms.get(j);
+                    double cap  = capacityMiPerSec(vm);
                     double exec = lengthMi / cap;
-
                     double start = Math.max(arrival, readyTime.getOrDefault(vm, 0.0));
-                    double ect = start + exec;
-
-                    if (ect < localBestECT) {
-                        localBestECT = ect;
-                        localBestVm = vm;
+                    double ect   = start + exec;
+                    if (ect < bestECT) {
+                        bestECT  = ect;
+                        bestTask = t;
+                        bestVm   = vm;
+                        bestIdx  = j;
                     }
-                }
-
-                if (localBestECT < bestECT) {
-                    bestECT = localBestECT;
-                    bestTask = t;
-                    bestVm = localBestVm;
                 }
             }
 
-            // Assign bestTask -> bestVm
             CloudletSimple c = WorkloadLoader.createCloudletFrom(bestTask);
             double arrival = bestTask.getArrivalTimeSeconds();
             try { c.setSubmissionDelay(arrival / 50); } catch (NoSuchMethodError ignore) {}
-
             broker.bindCloudletToVm(c, bestVm);
             c.setVm(bestVm);
             cloudlets.add(c);
             bindCounts.merge(bestVm.getId(), 1, Integer::sum);
 
-            // update ready time
-            double exec = lengthMiLike(bestTask) / capacityMiPerSec(bestVm);
+            double cap   = capacityMiPerSec(bestVm);
+            double exec  = lengthMiLike(bestTask) / cap;
             double start = Math.max(arrival, readyTime.getOrDefault(bestVm, 0.0));
             readyTime.put(bestVm, start + exec);
+            backlog[bestIdx] += exec;
 
             remaining.remove(bestTask);
         }
 
-        System.out.println("Final Bindings " + bindCounts);
+        printSummary("MinMin", bindCounts, vms, backlog);
+        // at the end of each scheduler, after printSummary()
+        ResultsExporter.addResult(
+                buildResult("MinMin", bindCounts, vms, backlog, -1, -1, null)
+        );
         broker.submitCloudletList(cloudlets);
         return cloudlets;
     }

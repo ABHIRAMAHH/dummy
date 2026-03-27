@@ -1,0 +1,213 @@
+{
+  "simulationResults": {
+    "title": "Cloud Scheduler Comparison",
+    "totalTasks": 1000,
+    "vmCount": 5,
+    "fairSharePerVM": 200,
+    "schedulers": [
+      {
+        "id": "ASB_DYNAMIC",
+        "name": "ASB-Dynamic Scheduler v4",
+        "metrics": {
+          "makespan": 235.58,
+          "avgWaitTime": 0.10,
+          "totalCost": 49355.00,
+          "vsFIFO": -317775.57,
+          "improvPercent": 86.56,
+          "predicted": false
+        },
+        "vmBindings": {
+          "VM_0": 170,
+          "VM_1": 172,
+          "VM_2": 191,
+          "VM_3": 196,
+          "VM_4": 271
+        },
+        "vmDetails": [
+          { "vmId": 0, "tasks": 170, "mips": 1000, "costPerSec": 1.00,   "backlogSec": 235.58, "overloaded": false, "host": 0, "allocationScore": 0.2235, "predThroughput": 19.526 },
+          { "vmId": 1, "tasks": 172, "mips": 1000, "costPerSec": 1.00,   "backlogSec": 237.26, "overloaded": false, "host": 0, "allocationScore": 0.2791, "predThroughput": 19.558 },
+          { "vmId": 2, "tasks": 191, "mips": 2000, "costPerSec": 50.00,  "backlogSec": 130.08, "overloaded": false, "host": 1, "allocationScore": 0.3391, "predThroughput": 18.899 },
+          { "vmId": 3, "tasks": 196, "mips": 2000, "costPerSec": 50.00,  "backlogSec": 131.42, "overloaded": false, "host": 0, "allocationScore": 0.3457, "predThroughput": 18.636 },
+          { "vmId": 4, "tasks": 271, "mips": 3000, "costPerSec": 120.00, "backlogSec": 80.08,  "overloaded": false, "host": 0, "allocationScore": 0.3903, "predThroughput": 19.592 }
+        ],
+        "loadStdDev": 36.94,
+        "loadTarget": 60,
+        "loadBalanced": true,
+        "weights": {
+          "CPEFT": 0.39,
+          "priority": 0.18,
+          "AI": 0.17,
+          "affinity": 0.09,
+          "overload": 0.17
+        },
+        "aiModel": {
+          "throughputPredictions": 1000,
+          "baseTime": "2024-01-01T00:00",
+          "throughputMin": 8.92,
+          "throughputMax": 20.33,
+          "throughputRange": 11.41
+        }
+      },
+      {
+        "id": "PRIORITY",
+        "name": "Priority Scheduler",
+        "metrics": {
+          "makespan": 5998.26,
+          "avgWaitTime": 0.10,
+          "totalCost": 67127.00,
+          "vsFIFO": -300003.57,
+          "improvPercent": 81.71,
+          "predicted": false
+        },
+        "vmBindings": { "VM_0": 132, "VM_1": 115, "VM_2": 251, "VM_3": 251, "VM_4": 251 },
+        "vmDetails": [
+          { "vmId": 0, "tasks": 132, "mips": 1000, "costPerSec": 1.00,   "backlogSec": 15644.36, "overloaded": false },
+          { "vmId": 1, "tasks": 115, "mips": 1000, "costPerSec": 1.00,   "backlogSec": 4538.27,  "overloaded": false },
+          { "vmId": 2, "tasks": 251, "mips": 2000, "costPerSec": 50.00,  "backlogSec": 7732.92,  "overloaded": false },
+          { "vmId": 3, "tasks": 251, "mips": 2000, "costPerSec": 50.00,  "backlogSec": 8325.30,  "overloaded": false },
+          { "vmId": 4, "tasks": 251, "mips": 3000, "costPerSec": 120.00, "backlogSec": 3298.40,  "overloaded": false }
+        ],
+        "loadStdDev": 62.69, "loadTarget": 60, "loadBalanced": false
+      },
+      {
+        "id": "FIFO",
+        "name": "FIFO Scheduler",
+        "metrics": {
+          "makespan": 125.63,
+          "avgWaitTime": 0.10,
+          "totalCost": 367130.57,
+          "vsFIFO": 0.00,
+          "improvPercent": 0.0,
+          "predicted": false
+        },
+        "vmBindings": { "VM_0": 124, "VM_1": 77, "VM_2": 237, "VM_3": 210, "VM_4": 352 },
+        "vmDetails": [
+          { "vmId": 0, "tasks": 124, "mips": 1000, "costPerSec": 1.00,   "backlogSec": 3240.70,  "overloaded": false },
+          { "vmId": 1, "tasks": 77,  "mips": 1000, "costPerSec": 1.00,   "backlogSec": 2552.39,  "overloaded": false },
+          { "vmId": 2, "tasks": 237, "mips": 2000, "costPerSec": 50.00,  "backlogSec": 5758.15,  "overloaded": false },
+          { "vmId": 3, "tasks": 210, "mips": 2000, "costPerSec": 50.00,  "backlogSec": 5654.77,  "overloaded": false },
+          { "vmId": 4, "tasks": 352, "mips": 3000, "costPerSec": 120.00, "backlogSec": 6045.97,  "overloaded": true  }
+        ],
+        "loadStdDev": 95.37, "loadTarget": 60, "loadBalanced": false
+      },
+      {
+        "id": "ROUND_ROBIN",
+        "name": "Round Robin Scheduler",
+        "metrics": {
+          "makespan": 25689.85,
+          "avgWaitTime": 0.10,
+          "totalCost": 1121001.00,
+          "vsFIFO": 753870.43,
+          "improvPercent": -205.34,
+          "predicted": true
+        },
+        "vmBindings": { "VM_0": 200, "VM_1": 200, "VM_2": 200, "VM_3": 200, "VM_4": 200 },
+        "vmDetails": [
+          { "vmId": 0, "tasks": 200, "mips": 1000, "costPerSec": 1.00,   "backlogSec": 23752.39, "overloaded": false },
+          { "vmId": 1, "tasks": 200, "mips": 1000, "costPerSec": 1.00,   "backlogSec": 25689.85, "overloaded": false },
+          { "vmId": 2, "tasks": 200, "mips": 2000, "costPerSec": 50.00,  "backlogSec": 6020.68,  "overloaded": false },
+          { "vmId": 3, "tasks": 200, "mips": 2000, "costPerSec": 50.00,  "backlogSec": 6634.16,  "overloaded": false },
+          { "vmId": 4, "tasks": 200, "mips": 3000, "costPerSec": 120.00, "backlogSec": 1994.56,  "overloaded": false }
+        ],
+        "loadStdDev": 0.00, "loadTarget": 60, "loadBalanced": true
+      },
+      {
+        "id": "PRIORITY_SJF",
+        "name": "Priority SJF Scheduler",
+        "metrics": {
+          "makespan": 24889.98,
+          "avgWaitTime": 0.10,
+          "totalCost": 1119107.00,
+          "vsFIFO": 751976.43,
+          "improvPercent": -204.83,
+          "predicted": true
+        },
+        "vmBindings": { "VM_0": 200, "VM_1": 200, "VM_2": 200, "VM_3": 200, "VM_4": 200 },
+        "vmDetails": [
+          { "vmId": 0, "tasks": 200, "mips": 1000, "costPerSec": 1.00,   "backlogSec": 24889.98, "overloaded": false },
+          { "vmId": 1, "tasks": 200, "mips": 1000, "costPerSec": 1.00,   "backlogSec": 24678.22, "overloaded": false },
+          { "vmId": 2, "tasks": 200, "mips": 2000, "costPerSec": 50.00,  "backlogSec": 6293.62,  "overloaded": false },
+          { "vmId": 3, "tasks": 200, "mips": 2000, "costPerSec": 50.00,  "backlogSec": 6306.91,  "overloaded": false },
+          { "vmId": 4, "tasks": 200, "mips": 3000, "costPerSec": 120.00, "backlogSec": 2002.17,  "overloaded": false }
+        ],
+        "loadStdDev": 0.00, "loadTarget": 60, "loadBalanced": true
+      },
+      {
+        "id": "SJF",
+        "name": "SJF Scheduler",
+        "metrics": {
+          "makespan": 5554.64,
+          "avgWaitTime": 0.10,
+          "totalCost": 1241126.00,
+          "vsFIFO": 873995.43,
+          "improvPercent": -238.10,
+          "predicted": true
+        },
+        "vmBindings": { "VM_0": 66, "VM_1": 107, "VM_2": 165, "VM_3": 193, "VM_4": 469 },
+        "vmDetails": [
+          { "vmId": 0, "tasks": 66,  "mips": 1000, "costPerSec": 1.00,   "backlogSec": 5930.76,  "overloaded": false },
+          { "vmId": 1, "tasks": 107, "mips": 1000, "costPerSec": 1.00,   "backlogSec": 6396.57,  "overloaded": false },
+          { "vmId": 2, "tasks": 165, "mips": 2000, "costPerSec": 50.00,  "backlogSec": 5585.14,  "overloaded": false },
+          { "vmId": 3, "tasks": 193, "mips": 2000, "costPerSec": 50.00,  "backlogSec": 5668.21,  "overloaded": false },
+          { "vmId": 4, "tasks": 469, "mips": 3000, "costPerSec": 120.00, "backlogSec": 5554.64,  "overloaded": true  }
+        ],
+        "loadStdDev": 141.59, "loadTarget": 60, "loadBalanced": false
+      },
+      {
+        "id": "MINMIN",
+        "name": "MinMin Scheduler",
+        "metrics": {
+          "makespan": 5056.95,
+          "avgWaitTime": 0.10,
+          "totalCost": 1244132.00,
+          "vsFIFO": 877001.43,
+          "improvPercent": -238.92,
+          "predicted": true
+        },
+        "vmBindings": { "VM_0": 21, "VM_1": 20, "VM_2": 118, "VM_3": 113, "VM_4": 728 },
+        "vmDetails": [
+          { "vmId": 0, "tasks": 21,  "mips": 1000, "costPerSec": 1.00,   "backlogSec": 6619.95,  "overloaded": false },
+          { "vmId": 1, "tasks": 20,  "mips": 1000, "costPerSec": 1.00,   "backlogSec": 6233.73,  "overloaded": false },
+          { "vmId": 2, "tasks": 118, "mips": 2000, "costPerSec": 50.00,  "backlogSec": 6247.97,  "overloaded": false },
+          { "vmId": 3, "tasks": 113, "mips": 2000, "costPerSec": 50.00,  "backlogSec": 6366.84,  "overloaded": false },
+          { "vmId": 4, "tasks": 728, "mips": 3000, "costPerSec": 120.00, "backlogSec": 5056.95,  "overloaded": true  }
+        ],
+        "loadStdDev": 267.40, "loadTarget": 60, "loadBalanced": false
+      },
+      {
+        "id": "COST_GREEDY",
+        "name": "Cost Greedy Scheduler",
+        "metrics": {
+          "makespan": 123996.37,
+          "avgWaitTime": 0.10,
+          "totalCost": 123996.37,
+          "vsFIFO": -243134.20,
+          "improvPercent": 66.23,
+          "predicted": true
+        },
+        "vmBindings": { "VM_0": 1000, "VM_1": 0, "VM_2": 0, "VM_3": 0, "VM_4": 0 },
+        "vmDetails": [
+          { "vmId": 0, "tasks": 1000, "mips": 1000, "costPerSec": 1.00,   "backlogSec": 123996.37, "overloaded": true  },
+          { "vmId": 1, "tasks": 0,    "mips": 1000, "costPerSec": 1.00,   "backlogSec": 0.00,       "overloaded": false },
+          { "vmId": 2, "tasks": 0,    "mips": 2000, "costPerSec": 50.00,  "backlogSec": 0.00,       "overloaded": false },
+          { "vmId": 3, "tasks": 0,    "mips": 2000, "costPerSec": 50.00,  "backlogSec": 0.00,       "overloaded": false },
+          { "vmId": 4, "tasks": 0,    "mips": 3000, "costPerSec": 120.00, "backlogSec": 0.00,       "overloaded": false }
+        ],
+        "loadStdDev": 400.00, "loadTarget": 60, "loadBalanced": false
+      }
+    ],
+    "vmConfig": [
+      { "vmId": 0, "type": "Small",  "mips": 1000, "costPerSec": 1.00   },
+      { "vmId": 1, "type": "Small",  "mips": 1000, "costPerSec": 1.00   },
+      { "vmId": 2, "type": "Medium", "mips": 2000, "costPerSec": 50.00  },
+      { "vmId": 3, "type": "Medium", "mips": 2000, "costPerSec": 50.00  },
+      { "vmId": 4, "type": "Large",  "mips": 3000, "costPerSec": 120.00 }
+    ],
+    "notes": {
+      "predictedMetrics": "Schedulers marked predicted:true had truncated output. Makespan = max backlogSec of bottleneck VM. TotalCost = sum(backlogSec x costPerSec) per VM. AvgWaitTime inferred as 0.10 consistent with all completed schedulers.",
+      "baseline": "FIFO is used as the baseline for vsFIFO and improvPercent calculation",
+      "overloadThreshold": "VMs marked overloaded exceeded fair share significantly",
+      "asbModel": "ASB-Dynamic v4 uses CPEFT + Priority + AI throughput prediction + Affinity + Overload weights for task-to-VM assignment"
+    }
+  }
+}

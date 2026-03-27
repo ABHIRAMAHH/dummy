@@ -105,16 +105,24 @@ public class WorkloadLoader {
     }
     public static CloudletSimple createCloudletFrom(WorkloadTask t) {
 
-        long length = Math.max(100, (long) ((t.taskExecutionTime * t.cpuUtilization) / 50));
+        long length = Math.max(100,
+                (long)((t.taskExecutionTime * t.cpuUtilization) / 50));
 
-        CloudletSimple cloudlet = new CloudletSimple(length, 1, new UtilizationModelFull());
-
+        CloudletSimple cloudlet = new CloudletSimple(length, 1);
         cloudlet.setId(t.taskId);
         cloudlet.setFileSize(100);
         cloudlet.setOutputSize(100);
 
-        CloudletMetadata.storeMetadata(cloudlet.getId(), t);
+        // CPU: full utilization (this is what drives execution)
+        cloudlet.setUtilizationModelCpu(new UtilizationModelFull());
 
+        // RAM + BW: 10% only — prevents "requested 4096 MB" warnings
+        cloudlet.setUtilizationModelRam(
+                new org.cloudbus.cloudsim.utilizationmodels.UtilizationModelDynamic(0.1));
+        cloudlet.setUtilizationModelBw(
+                new org.cloudbus.cloudsim.utilizationmodels.UtilizationModelDynamic(0.1));
+
+        CloudletMetadata.storeMetadata(cloudlet.getId(), t);
         return cloudlet;
     }
 }

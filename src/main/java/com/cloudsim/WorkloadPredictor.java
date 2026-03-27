@@ -7,8 +7,7 @@ import java.io.FileReader;
 import java.io.Reader;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Reads LSTM-predicted workload CSV and provides predicted throughput
@@ -72,10 +71,28 @@ public class WorkloadPredictor {
     }
 
     /** Query by dataset timestamp */
+//    public double getPredictedThroughput(LocalDateTime timestamp) {
+//        return throughputMap.getOrDefault(timestamp, 5.0);
+//    }
+    /**
+     * Get predicted throughput by task timestamp with fallback interpolation.
+     * Fixes the SEQ_LEN warmup gap where first 13 rows return 5.0.
+     */
     public double getPredictedThroughput(LocalDateTime timestamp) {
-        return throughputMap.getOrDefault(timestamp, 5.0);
-    }
+        Double val = throughputMap.get(timestamp);
 
+        // If we got a real prediction (not the 5.0 warmup default), use it
+        if (val != null && val > 5.01) return val;
+
+        // Nearest-neighbor fallback for warmup rows
+        return throughputMap.entrySet().stream()
+                .filter(e -> e.getValue() > 5.01)
+                .min(Comparator.comparingLong(e ->
+                        Math.abs(java.time.Duration.between(e.getKey(), timestamp).toSeconds())
+                ))
+                .map(Map.Entry::getValue)
+                .orElse(8.0); // mean of your dataset range [1..20]
+    }
     /** Query by simulation clock (seconds since baseTime) */
     public double getPredictedThroughput(double simTimeSeconds) {
         if (baseTime == null) return 5.0;
