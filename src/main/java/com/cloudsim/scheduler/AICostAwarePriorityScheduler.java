@@ -17,30 +17,7 @@ import static com.cloudsim.scheduler.SchedulerUtil.*;
  * ============================================================
  *  ASB-Dynamic Scheduler v4 (Adaptive Score-Based Dynamic)
  *
- *  ROOT CAUSE FIX:
- *  VM4 (3000 MIPS) always won on EFT because it processes
- *  tasks 3x faster, so its EFT is always lower UNTIL it has
- *  3x more backlog than slow VMs. This causes 47% task pile-up.
- *
- *  SOLUTION: Cost-Penalized EFT (CPEFT)
- *
- *  CPEFT(i,j) = EFT(i,j) × (1 + costNorm[j] × costPenaltyFactor)
- *
- *  This makes expensive VMs appear "slower" in the score,
- *  forcing the scheduler to balance cost vs speed naturally.
- *
- *  Additionally: soft task-count cap discourages piling onto
- *  any single VM beyond its fair share.
- *
- *  FULL FORMULA:
- *  Score(i,j) = w[0] * CPEFTnorm(i,j)           [cost-penalized EFT]
- *             + w[1] * PriorityMismatch(i,j)     [priority-speed match]
- *             - w[2] * AIBoost(predTh,j)         [CNN-GRU reward]
- *             - w[3] * AffinityBonus(i,j)        [diversity]
- *             + w[4] * OverloadPenalty(j)        [soft cap]
- *
- *  Weights adapt every ADAPT_INTERVAL via EMA on prediction error.
- * ============================================================
+
  */
 public class AICostAwarePriorityScheduler {
 
@@ -49,15 +26,12 @@ public class AICostAwarePriorityScheduler {
     private static final double ALPHA             = 0.25;
     private static final int    PRESSURE_WINDOW   = 30;
 
-    // KEY TUNING: how much to penalize expensive VMs in EFT
-    // 2.0 = VM with costNorm=1.0 appears 3x slower in score
-    // Increase this if VM4 still dominates
+
     private static final double COST_PENALTY_FACTOR = 2.0;
 
-    // Soft cap: penalize VMs that exceed their fair share by this ratio
-    // 1.5 = start penalizing when VM has 50% more than average tasks
+
     private static final double OVERLOAD_RATIO = 1.5;
-    // ─────────────────────────────────────────────────────────
+
 
     public static List<CloudletSimple> schedule(
             List<WorkloadTask>     tasks,
@@ -69,11 +43,10 @@ public class AICostAwarePriorityScheduler {
         int T = tasks.size();
         double fairShare = (double) T / V; // expected tasks per VM
 
-        // ── 1. VM static properties ───────────────────────────
         double[] vmMips       = new double[V];
         double[] vmCostPerSec = new double[V];
         int[]    vmPes        = new int[V];
-        double[] vmEffective  = new double[V]; // mips × pes
+        double[] vmEffective  = new double[V];
 
         for (int j = 0; j < V; j++) {
             Vm vm            = vms.get(j);
@@ -118,15 +91,13 @@ public class AICostAwarePriorityScheduler {
                 .comparingInt(AICostAwarePriorityScheduler::priorityRank)
                 .thenComparingDouble(t -> t.taskExecutionTime));
 
-        // ── 4. Weights ────────────────────────────────────────
-        // w[0]=CPEFT  w[1]=priority-mismatch
-        // w[2]=AI-boost(-)  w[3]=affinity(-)  w[4]=overload(+)
+
         double[] w = { 0.40, 0.20, 0.15, 0.10, 0.15 };
 
         // ── 5. State trackers ─────────────────────────────────
-        double[] backlog      = new double[V];  // queued seconds
-        int[]    taskCount    = new int[V];     // tasks assigned so far
-        int[][]  priorityCount= new int[V][3]; // [vm][High/Med/Low]
+        double[] backlog      = new double[V];
+        int[]    taskCount    = new int[V];
+        int[][]  priorityCount= new int[V][3];
 
         // ── 6. Rolling window for pressure ───────────────────
         Deque<Double> predWindow = new ArrayDeque<>(PRESSURE_WINDOW);
@@ -169,10 +140,7 @@ public class AICostAwarePriorityScheduler {
             int    pRank            = priorityRank(task);
             double priorityPressure = (2 - pRank) / 2.0;
 
-            // ── Compute CPEFT for each VM ─────────────────────
-            // CPEFT = EFT × (1 + costNorm × COST_PENALTY_FACTOR)
-            // This makes VM4 (costNorm=1.0) appear 3x slower in scoring
-            // while VM0 (costNorm=0.0) keeps its raw EFT advantage
+
             double[] cpeft    = new double[V];
             double   maxCPEFT = 0;
             double   minCPEFT = Double.MAX_VALUE;
@@ -192,14 +160,9 @@ public class AICostAwarePriorityScheduler {
 
             for (int j = 0; j < V; j++) {
 
-                // C1: Cost-Penalized EFT normalized [0,1]
-                // Combines speed + cost into single metric
-                // Cheap+slow VM competes fairly with expensive+fast VM
+
                 double cpeftScore = (cpeft[j] - minCPEFT) / cpeftRange;
 
-                // C2: Priority-speed mismatch
-                // High priority task on slow VM = bad
-                // Scales with throughput pressure (busy → matters more)
                 double speedPenalty     = 1.0 - vmSpeedNorm[j];
                 double priorityMismatch = priorityPressure * speedPenalty
                         * (0.5 + 0.5 * throughputPressure);
@@ -210,17 +173,12 @@ public class AICostAwarePriorityScheduler {
                 double normalizedBacklog = backlog[j] / Math.max(maxBL, 1e-9);
                 double aiBoost = throughputPressure * (1.0 - normalizedBacklog);
 
-                // C4: Affinity bonus (SUBTRACTED = reward diversity)
                 double affinityBonus = computeAffinityBonus(priorityCount[j], pRank);
 
-                // C5: Overload penalty (ADDED = discourage piling)
-                // Kicks in when VM exceeds OVERLOAD_RATIO × fairShare tasks
                 double overloadPenalty = 0.0;
                 if (taskCount[j] > OVERLOAD_RATIO * fairShare) {
-                    // Grows linearly with excess tasks
                     overloadPenalty = (taskCount[j] - OVERLOAD_RATIO * fairShare)
                             / Math.max(fairShare, 1.0);
-                    // Cap at 1.0 so it doesn't completely dominate
                     overloadPenalty = Math.min(1.0, overloadPenalty);
                 }
 
@@ -266,10 +224,10 @@ public class AICostAwarePriorityScheduler {
             }
         }
 
-        // ── 10. Submit ────────────────────────────────────────
+        // ── 10. Submit
         broker.submitCloudletList(cloudlets);
 
-        // ── 11. Summary ───────────────────────────────────────
+        // ── 11. Summary
         System.out.println("Final Bindings: " + bindCounts);
         printSummary(cloudlets, vms, backlog, taskCount, w, fairShare);
         Map<String, Double> weightsMap = new LinkedHashMap<>();
@@ -286,9 +244,6 @@ public class AICostAwarePriorityScheduler {
         return cloudlets;
     }
 
-    // ─────────────────────────────────────────────────────────
-    // safePredict
-    // ─────────────────────────────────────────────────────────
     private static double safePredict(WorkloadPredictor predictor,
                                       WorkloadTask task,
                                       double fallbackIndex) {
@@ -303,9 +258,7 @@ public class AICostAwarePriorityScheduler {
         }
     }
 
-    // ─────────────────────────────────────────────────────────
-    // priorityRank: 0=High, 1=Medium, 2=Low
-    // ─────────────────────────────────────────────────────────
+
     private static int priorityRank(WorkloadTask t) {
         if (t.jobPriority == null) return 2;
         switch (t.jobPriority.trim().toLowerCase()) {
@@ -315,20 +268,14 @@ public class AICostAwarePriorityScheduler {
         }
     }
 
-    // ─────────────────────────────────────────────────────────
-    // affinityBonus [0..1]
-    // ─────────────────────────────────────────────────────────
+
     private static double computeAffinityBonus(int[] counts, int pRank) {
         int total = counts[0] + counts[1] + counts[2];
         if (total == 0) return 1.0;
         return 1.0 - ((double) counts[pRank] / total);
     }
 
-    // ─────────────────────────────────────────────────────────
-    // adaptWeights
-    // busy  → w[0](CPEFT)↑, w[2](AI)↑, w[4](overload)↑
-    // idle  → w[0](CPEFT)↓, w[2](AI)↓, cost implicitly favored
-    // ─────────────────────────────────────────────────────────
+
     private static void adaptWeights(double[] w,
                                      double predError,
                                      double throughputPressure) {
@@ -336,15 +283,15 @@ public class AICostAwarePriorityScheduler {
         double shift = ALPHA * errorSignal * 0.06;
 
         if (throughputPressure > 0.5) {
-            // Busy: tighten load balance, boost AI signal
-            w[0] = Math.min(0.55, w[0] + shift); // CPEFT up
-            w[2] = Math.min(0.30, w[2] + shift); // AI up
-            w[4] = Math.min(0.25, w[4] + shift); // overload up
+
+            w[0] = Math.min(0.55, w[0] + shift);
+            w[2] = Math.min(0.30, w[2] + shift);
+            w[4] = Math.min(0.25, w[4] + shift);
         } else {
-            // Idle: relax load constraints
-            w[0] = Math.max(0.25, w[0] - shift); // CPEFT down
-            w[2] = Math.max(0.05, w[2] - shift); // AI down
-            w[4] = Math.max(0.05, w[4] - shift); // overload down
+
+            w[0] = Math.max(0.25, w[0] - shift);
+            w[2] = Math.max(0.05, w[2] - shift);
+            w[4] = Math.max(0.05, w[4] - shift);
         }
 
         // Re-normalize to sum=1
@@ -354,9 +301,7 @@ public class AICostAwarePriorityScheduler {
             for (int k = 0; k < w.length; k++) w[k] = Math.abs(w[k]) / sum;
     }
 
-    // ─────────────────────────────────────────────────────────
-    // printSummary
-    // ─────────────────────────────────────────────────────────
+
     private static void printSummary(List<CloudletSimple> cloudlets,
                                      List<Vm> vms,
                                      double[] backlog,

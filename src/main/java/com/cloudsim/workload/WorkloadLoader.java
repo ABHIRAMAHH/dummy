@@ -64,6 +64,7 @@ public class WorkloadLoader {
 
         // Your raw dataset uses "dd-MM-yyyy HH:mm"
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
         String line;
         boolean first = true;

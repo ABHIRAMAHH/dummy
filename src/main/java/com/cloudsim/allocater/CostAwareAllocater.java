@@ -11,14 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * CostAwareAllocater (fixed for CloudSim time + anti-packing)
- *
- * Fixes:
- *  - Uses simulation clock time (seconds) instead of LocalDateTime.now()
- *  - Adds packing penalty so VMs don't all go to the smallest Host
- *  - Stores predictedThroughput per VM for correct summary printing
- */
+
 public class CostAwareAllocater extends VmAllocationPolicySimple {
 
     private final Map<Vm, Double> vmScoreMap = new LinkedHashMap<>();
@@ -124,8 +117,6 @@ public class CostAwareAllocater extends VmAllocationPolicySimple {
                 predictedThroughput
         );
 
-        // Print summary every time (simple + correct).
-        // If you prefer: only print when all VMs are allocated, you can add your own condition.
         printAllocationSummary();
 
         return true;

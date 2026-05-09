@@ -18,7 +18,7 @@ from tensorflow.keras.callbacks import EarlyStopping
 # =========================
 # Config
 # =========================
-DATA_PATH = "../data/cloud_workload_steady.csv"
+DATA_PATH = "../data/workload.csv"
 MODEL_DIR = "models"
 RESULTS_DIR = "../results"
 
